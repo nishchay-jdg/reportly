@@ -111,12 +111,26 @@
             <div id="code-editor" class="flex-1 min-w-0 border-r border-gray-200 dark:border-gray-800 overflow-hidden"></div>
 
             <!-- Preview -->
+            @php $liveShare = $project->shares->firstWhere('is_active', true); @endphp
             <div class="w-1/2 shrink-0 flex flex-col bg-white dark:bg-gray-950">
                 <div class="flex items-center justify-between px-3 py-1.5 border-b border-gray-200 dark:border-gray-800 text-xs font-medium text-gray-500 dark:text-gray-400">
                     <span>Preview</span>
-                    <button @click="updatePreview()" class="hover:text-gray-700 dark:hover:text-gray-200" title="Refresh preview">
-                        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-                    </button>
+                    <div class="flex items-center gap-3">
+                        @if ($liveShare)
+                            <a href="{{ route('share.view', $liveShare->slug) }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-200" title="Open the live shared report in a new tab — comment and reply there">
+                                Open live
+                                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                            </a>
+                        @else
+                            <button x-data @click="$dispatch('open-modal', 'share-panel')" class="inline-flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-200" title="Create a share link to open the live report">
+                                Open live
+                                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                            </button>
+                        @endif
+                        <button @click="updatePreview()" class="hover:text-gray-700 dark:hover:text-gray-200" title="Refresh preview">
+                            <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                        </button>
+                    </div>
                 </div>
                 <iframe x-ref="preview" class="w-full flex-1 bg-white" sandbox="allow-scripts"></iframe>
             </div>
