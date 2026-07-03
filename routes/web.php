@@ -73,12 +73,12 @@ Route::middleware('auth')->group(function () {
 // Public share viewer (no auth) — guests may view, comment, and delete their own comments
 // (ownership is checked against a long-lived identity cookie, see CommentController).
 Route::get('/r/{slug}', [ShareViewController::class, 'show'])->name('share.view');
-Route::post('/r/{slug}/unlock', [ShareViewController::class, 'unlock'])->name('share.unlock');
-Route::post('/r/{slug}/comments', [CommentController::class, 'store'])->name('share.comments.store');
+Route::post('/r/{slug}/unlock', [ShareViewController::class, 'unlock'])->name('share.unlock')->middleware('throttle:share-unlock');
+Route::post('/r/{slug}/comments', [CommentController::class, 'store'])->name('share.comments.store')->middleware('throttle:guest-comments');
 Route::get('/r/{slug}/comments', [ShareViewController::class, 'comments'])->name('share.comments.index');
 Route::post('/r/{slug}/approve', [ShareViewController::class, 'approve'])->name('share.approve');
 Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
 Route::get('/r/{slug}/agreement', [AgreementController::class, 'show'])->name('share.agreement.show');
-Route::post('/r/{slug}/agreement', [AgreementController::class, 'store'])->name('share.agreement.store');
+Route::post('/r/{slug}/agreement', [AgreementController::class, 'store'])->name('share.agreement.store')->middleware('throttle:agreement-sign');
 
 require __DIR__.'/auth.php';
