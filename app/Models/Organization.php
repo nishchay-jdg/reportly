@@ -14,7 +14,18 @@ class Organization extends Model
     protected $fillable = [
         'name',
         'slug',
+        'notification_email',
+        'notify_on_comment',
+        'notify_on_first_view',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'notify_on_comment' => 'boolean',
+            'notify_on_first_view' => 'boolean',
+        ];
+    }
 
     public function users(): HasMany
     {

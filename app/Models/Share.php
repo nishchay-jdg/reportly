@@ -23,6 +23,10 @@ class Share extends Model
         'expires_at',
         'is_active',
         'allow_guest_comments',
+        'approval_status',
+        'approved_by_name',
+        'approval_note',
+        'approved_at',
     ];
 
     protected function casts(): array
@@ -31,6 +35,7 @@ class Share extends Model
             'expires_at' => 'datetime',
             'is_active' => 'boolean',
             'allow_guest_comments' => 'boolean',
+            'approved_at' => 'datetime',
         ];
     }
 
