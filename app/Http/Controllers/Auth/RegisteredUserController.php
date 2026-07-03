@@ -38,12 +38,20 @@ class RegisteredUserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'notification_email' => ['nullable', 'string', 'lowercase', 'email', 'max:255'],
+            'notify_on_comment' => ['sometimes', 'boolean'],
+            'notify_on_first_view' => ['sometimes', 'boolean'],
         ]);
 
         $user = DB::transaction(function () use ($request) {
             $organization = Organization::create([
                 'name' => $request->organization_name,
                 'slug' => $this->uniqueOrganizationSlug($request->organization_name),
+                // Defaults to the org-admin's own address so notifications work out of the
+                // box even if this step is skipped — it can be changed later in settings.
+                'notification_email' => $request->notification_email ?: $request->email,
+                'notify_on_comment' => $request->boolean('notify_on_comment', true),
+                'notify_on_first_view' => $request->boolean('notify_on_first_view', true),
             ]);
 
             return User::create([
