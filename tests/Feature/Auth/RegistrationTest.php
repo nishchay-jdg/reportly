@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Auth;
 
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -40,7 +41,7 @@ class RegistrationTest extends TestCase
             'password_confirmation' => 'password',
         ]);
 
-        $user = \App\Models\User::where('email', 'test@example.com')->firstOrFail();
+        $user = User::where('email', 'test@example.com')->firstOrFail();
         $this->assertSame('org_admin', $user->role);
         $this->assertSame('Acme Marketing', $user->organization->name);
         $this->assertSame('test@example.com', $user->organization->notification_email);

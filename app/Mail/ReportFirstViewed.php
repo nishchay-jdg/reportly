@@ -13,9 +13,7 @@ class ReportFirstViewed extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public function __construct(public Share $share)
-    {
-    }
+    public function __construct(public Share $share) {}
 
     public function envelope(): Envelope
     {

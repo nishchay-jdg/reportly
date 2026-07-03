@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Mail\AgreementSigned;
 use App\Models\AgreementSignature;
 use App\Models\Share;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -60,7 +61,7 @@ class AgreementController extends Controller
                 'ip_address' => $request->ip(),
                 'signed_at' => now(),
             ]);
-        } catch (\Illuminate\Database\QueryException $e) {
+        } catch (QueryException $e) {
             // Two tabs submitting at once both pass the check above — the unique
             // constraint on share_id is the real guard against a duplicate signature.
             return response()->json($this->payload($share->fresh()), 409);

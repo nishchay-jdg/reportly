@@ -13,9 +13,7 @@ class NewCommentPosted extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public function __construct(public Comment $comment)
-    {
-    }
+    public function __construct(public Comment $comment) {}
 
     public function envelope(): Envelope
     {

@@ -13,9 +13,7 @@ class AgreementSigned extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public function __construct(public AgreementSignature $signature, public bool $isSignerCopy = false)
-    {
-    }
+    public function __construct(public AgreementSignature $signature, public bool $isSignerCopy = false) {}
 
     public function envelope(): Envelope
     {
