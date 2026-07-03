@@ -347,11 +347,19 @@ class ProjectTemplates
                 document.getElementById('terms_link').href = TERMS_URL;
                 signedAtEl.textContent = new Date().toISOString().slice(0, 10);
 
-                function lockForm(message) {
+                // Repopulates the fields from the saved record (not just a caption) so the
+                // page still shows what was actually signed after a refresh — a visible
+                // record to point to, not a blank locked form.
+                function lockForm(state) {
+                  fullName.value = state.full_name ?? fullName.value;
+                  email.value = state.email ?? email.value;
+                  if (state.company_name) company.value = state.company_name;
+                  signature.value = state.signature_text ?? signature.value;
+                  agreeTerms.checked = true;
                   [fullName, email, company, signature, agreeTerms, submitBtn].forEach(field => field.disabled = true);
                   confirmation.hidden = false;
                   confirmation.style.color = '#16a34a';
-                  confirmation.textContent = message;
+                  confirmation.textContent = `Signed by ${state.full_name} on ${state.signed_at}.`;
                 }
 
                 function showError(message) {
@@ -365,7 +373,7 @@ class ProjectTemplates
                 (async function checkAlreadySigned() {
                   if (!window.ReportlyAgreement) return;
                   const state = await window.ReportlyAgreement.check();
-                  if (state.signed) lockForm(`Signed by ${state.full_name} on ${state.signed_at}.`);
+                  if (state.signed) lockForm(state);
                 })();
 
                 submitBtn.addEventListener('click', async () => {
@@ -382,7 +390,13 @@ class ProjectTemplates
 
                   if (!window.ReportlyAgreement) {
                     // No share link yet (e.g. viewing inside the editor) — nothing to save to.
-                    lockForm(`Signed by ${fullName.value.trim()} on ${signedAtEl.textContent}. (preview only — publish a share link to save real signatures)`);
+                    lockForm({
+                      full_name: fullName.value.trim(),
+                      email: email.value.trim(),
+                      company_name: company.value.trim(),
+                      signature_text: signature.value.trim(),
+                      signed_at: signedAtEl.textContent + ' (preview only — publish a share link to save real signatures)',
+                    });
                     return;
                   }
 
@@ -397,7 +411,7 @@ class ProjectTemplates
                   });
 
                   if (result.signed) {
-                    lockForm(`Signed by ${result.full_name} on ${result.signed_at}.`);
+                    lockForm(result);
                   } else {
                     submitBtn.disabled = false;
                     showError(result.error || 'Could not submit — please try again.');

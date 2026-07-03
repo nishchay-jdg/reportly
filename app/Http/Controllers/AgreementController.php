@@ -108,6 +108,9 @@ class AgreementController extends Controller
         return [
             'signed' => true,
             'full_name' => $signature->full_name,
+            'email' => $signature->email,
+            'company_name' => $signature->company_name,
+            'signature_text' => $signature->signature_text,
             'signed_at' => $signature->signed_at->format('M j, Y g:ia'),
         ];
     }
