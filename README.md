@@ -51,3 +51,5 @@ This app is built to run on shared hosting without SSH, Composer, or Node access
 - `vendor/` and `public/build/` are committed so no build step is needed on the server.
 - Comment updates use polling rather than WebSockets, since there's no persistent socket/queue infrastructure.
 - Notification emails send synchronously rather than through a queue, since there's no queue worker — only cron.
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for the full cPanel deployment checklist.
