@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Project;
 use App\Models\Share;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -12,7 +13,7 @@ use Illuminate\Validation\Rule;
 
 class ShareController extends Controller
 {
-    public function store(Request $request, Project $project): RedirectResponse
+    public function store(Request $request, Project $project): RedirectResponse|JsonResponse
     {
         $data = $request->validate([
             'slug' => ['nullable', 'string', 'max:80', 'alpha_dash', Rule::unique('shares', 'slug')],
@@ -22,7 +23,7 @@ class ShareController extends Controller
             'allow_guest_comments' => ['sometimes', 'boolean'],
         ]);
 
-        Share::create([
+        $share = Share::create([
             'project_id' => $project->id,
             'created_by' => $request->user()->id,
             'slug' => $data['slug'] ?: $this->uniqueSlug($project->name),
@@ -31,6 +32,14 @@ class ShareController extends Controller
             'expires_at' => $data['expires_at'] ?? null,
             'allow_guest_comments' => $request->boolean('allow_guest_comments'),
         ]);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'slug' => $share->slug,
+                'url' => url('/r/'.$share->slug),
+                'visibility' => $share->visibility,
+            ]);
+        }
 
         return back()->with('status', 'Share link created.');
     }
