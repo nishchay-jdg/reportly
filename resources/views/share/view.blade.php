@@ -30,7 +30,7 @@
     <header class="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-6 py-3 flex items-center justify-between">
         <div class="flex items-center gap-3">
             @if ($brand?->logo_path)
-                <img src="{{ asset('storage/'.$brand->logo_path) }}" class="h-7" alt="logo">
+                <img src="{{ asset($brand->logo_path) }}" class="h-7" alt="logo">
             @endif
             <span class="font-semibold text-gray-800 dark:text-gray-100">{{ $share->project->name }}</span>
         </div>
