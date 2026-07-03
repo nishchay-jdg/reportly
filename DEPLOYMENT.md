@@ -4,6 +4,8 @@ This app is built to run on shared cPanel hosting with **Git Version Control** a
 
 ## One-time setup
 
+0. **Confirm the host offers PHP 8.4+.** This app's locked dependencies (Laravel's Symfony components) require PHP >= 8.4.1 — not just >= 8.3 as you might assume from a quick glance. Check cPanel → Select PHP Version, and set the domain to 8.4 (or newer) before anything else; nothing below will work on 8.3.
+
 1. **cPanel → Git Version Control → Create**, pointing at `https://github.com/nishchay-jdg/reportly.git`, branch `main`. cPanel clones it into a repo path (e.g. `/home/USER/repositories/reportly`).
 
 2. **Document root.** Laravel's entry point is `public/`, not the repo root — cPanel needs the domain's document root pointed at `<repo-path>/public`, not `<repo-path>`. If you're deploying to an addon domain or subdomain, set its document root there in cPanel → Domains. If you're stuck serving from the account's root `public_html` and can't repoint it, you'll need cPanel's "Deploy" copy-to-`public_html` step to place `public/`'s contents at the webroot while keeping the rest of the app outside it — ask your host if unsure, since serving the whole repo (with `.env`, `app/`, etc.) from a public webroot is a real security hole.
