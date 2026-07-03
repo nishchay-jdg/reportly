@@ -76,7 +76,7 @@
 
     <main class="w-full p-6 pb-28">
         <div id="report-canvas" class="relative bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden"
-             :class="{ 'cursor-crosshair': tool === 'comment' }"
+             :class="{ 'cursor-comment': tool === 'comment' }"
              @click="handleClick($event)">
             <iframe x-ref="reportFrame" srcdoc="{{ $doc }}" class="w-full border-0 block"
                     x-bind:style="`height:${frameHeight}px; pointer-events:${tool === 'select' ? 'auto' : 'none'}`"

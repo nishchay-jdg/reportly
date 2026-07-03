@@ -61,6 +61,12 @@ class CommentController extends Controller
             'position_y' => $data['position_y'] ?? null,
         ]);
 
+        // A reply on an already-resolved thread means the conversation isn't actually
+        // settled — reopen the parent so it doesn't get lost as "done".
+        if ($comment->parent_id) {
+            Comment::where('id', $comment->parent_id)->where('is_resolved', true)->update(['is_resolved' => false]);
+        }
+
         // Only notify on the client's own feedback — a team member replying to their own
         // thread shouldn't email the team about itself.
         if ($isGuest) {
