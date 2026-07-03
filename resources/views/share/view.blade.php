@@ -17,6 +17,8 @@
         commentUrl: '{{ route('share.comments.store', $share->slug) }}',
         commentsIndexUrl: '{{ route('share.comments.index', $share->slug) }}',
         resolveUrlBase: '{{ url('/comments') }}',
+        agreementShowUrl: '{{ route('share.agreement.show', $share->slug) }}',
+        agreementStoreUrl: '{{ route('share.agreement.store', $share->slug) }}',
         shareViewUrl: '{{ route('share.view', $share->slug) }}',
         csrf: '{{ csrf_token() }}',
         allowComments: {{ $share->allow_guest_comments ? 'true' : 'false' }},
@@ -220,9 +222,19 @@
                 currentUserName: config.currentUserName,
 
                 init() {
-                    window.addEventListener('message', (e) => {
-                        if (e.source === this.$refs.reportFrame?.contentWindow && e.data?.reportToolHeight) {
+                    window.addEventListener('message', async (e) => {
+                        if (e.source !== this.$refs.reportFrame?.contentWindow) return;
+
+                        if (e.data?.reportToolHeight) {
                             this.frameHeight = e.data.reportToolHeight;
+                        }
+
+                        const msg = e.data?.reportlyAgreement;
+                        if (msg) {
+                            const result = msg.type === 'submit'
+                                ? await this.submitAgreement(msg.payload)
+                                : await this.checkAgreement();
+                            e.source.postMessage({ reportlyAgreementResult: { id: msg.id, result } }, '*');
                         }
                     });
 
@@ -242,6 +254,32 @@
                         // openThread_ naturally resolves to null and the popover closes itself.
                     } catch (e) {
                         // Offline or a transient network blip — just try again on the next tick.
+                    }
+                },
+
+                async checkAgreement() {
+                    try {
+                        const res = await fetch(config.agreementShowUrl, { headers: { 'Accept': 'application/json' } });
+                        return await res.json();
+                    } catch (e) {
+                        return { signed: false };
+                    }
+                },
+
+                async submitAgreement(payload) {
+                    try {
+                        const res = await fetch(config.agreementStoreUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': config.csrf },
+                            body: JSON.stringify(payload),
+                        });
+                        const data = await res.json().catch(() => null);
+                        if (!res.ok) {
+                            return { signed: data?.signed ?? false, error: data?.message ?? 'Could not submit — please try again.' };
+                        }
+                        return data;
+                    } catch (e) {
+                        return { signed: false, error: 'Network error — please try again.' };
                     }
                 },
 

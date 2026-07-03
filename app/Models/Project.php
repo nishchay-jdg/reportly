@@ -69,31 +69,64 @@ class Project extends Model
         $css = $this->files->where('type', 'css')->pluck('content')->join("\n");
         $js = $this->files->where('type', 'js')->pluck('content')->join("\n");
 
+        // Bridge scripts must land in <head> — they run before the body's own <script> tag,
+        // so window.ReportlyAgreement exists by the time a template's on-load check runs.
+        // Appending them after the body's script (as was done originally) meant the bridge
+        // didn't exist yet when the template asked "has this already been signed?".
+        $head = $reportHeight ? $this->bridgeScript() : '';
+
         $doc = str_contains($html, '</head>')
-            ? str_replace('</head>', "<style>{$css}</style></head>", $html)
-            : "<style>{$css}</style>".$html;
+            ? str_replace('</head>', "<style>{$css}</style>{$head}</head>", $html)
+            : "<style>{$css}</style>{$head}".$html;
 
         $doc = str_contains($doc, '</body>')
             ? str_replace('</body>', "<script>{$js}</script></body>", $doc)
             : $doc."<script>{$js}</script>";
 
-        if ($reportHeight) {
-            $doc .= <<<'HTML'
-                <script>
-                    (function () {
-                        function reportHeight() {
-                            var height = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
-                            parent.postMessage({ reportToolHeight: height }, '*');
-                        }
-                        window.addEventListener('load', reportHeight);
-                        window.addEventListener('resize', reportHeight);
-                        new ResizeObserver(reportHeight).observe(document.documentElement);
-                        setTimeout(reportHeight, 300);
-                    })();
-                </script>
-                HTML;
-        }
-
         return $doc;
+    }
+
+    private function bridgeScript(): string
+    {
+        return <<<'HTML'
+            <script>
+                (function () {
+                    function reportHeight() {
+                        var height = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
+                        parent.postMessage({ reportToolHeight: height }, '*');
+                    }
+                    window.addEventListener('load', reportHeight);
+                    window.addEventListener('resize', reportHeight);
+                    new ResizeObserver(reportHeight).observe(document.documentElement);
+                    setTimeout(reportHeight, 300);
+                })();
+
+                // Bridge for report content (running in a sandboxed, origin-less iframe)
+                // to ask the parent page — which has the real session/cookies — to check
+                // or persist an agreement signature via the backend.
+                window.ReportlyAgreement = (function () {
+                    var pending = {};
+                    var nextId = 0;
+                    function send(type, payload) {
+                        return new Promise(function (resolve) {
+                            var id = ++nextId;
+                            pending[id] = resolve;
+                            parent.postMessage({ reportlyAgreement: { id: id, type: type, payload: payload } }, '*');
+                        });
+                    }
+                    window.addEventListener('message', function (e) {
+                        var msg = e.data && e.data.reportlyAgreementResult;
+                        if (msg && pending[msg.id]) {
+                            pending[msg.id](msg.result);
+                            delete pending[msg.id];
+                        }
+                    });
+                    return {
+                        check: function () { return send('check', {}); },
+                        submit: function (payload) { return send('submit', payload); },
+                    };
+                })();
+            </script>
+            HTML;
     }
 }

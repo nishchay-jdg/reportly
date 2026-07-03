@@ -27,6 +27,10 @@ class ProjectTemplates
                 'name' => 'Proposal',
                 'description' => 'Cover page, scope, and timeline sections.',
             ],
+            'agreement' => [
+                'name' => 'Agreement / NDA',
+                'description' => 'A signable agreement with a typed signature, date, and terms checkbox.',
+            ],
         ];
     }
 
@@ -36,6 +40,7 @@ class ProjectTemplates
             'seo-report' => 'seoReport',
             'pricing-page' => 'pricingPage',
             'proposal' => 'proposal',
+            'agreement' => 'agreement',
             default => 'blank',
         };
 
@@ -229,6 +234,176 @@ class ProjectTemplates
                 ol li { margin-bottom: 6px; }
                 CSS],
             ['filename' => 'script.js', 'type' => 'js', 'sort_order' => 2, 'content' => "console.log('ready');\n"],
+        ];
+    }
+
+    private static function agreement(string $name): array
+    {
+        return [
+            ['filename' => 'index.html', 'type' => 'html', 'sort_order' => 0, 'content' => <<<HTML
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                  <meta charset="UTF-8">
+                  <title>{$name}</title>
+                  <link rel="stylesheet" href="style.css">
+                </head>
+                <body>
+                  <div class="card">
+                    <h1>{$name}</h1>
+                    <p class="intro">Replace this paragraph with the terms of the agreement or NDA the signer is accepting.</p>
+
+                    <label for="full_name">Full Name</label>
+                    <div class="field-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                      <input type="text" id="full_name" placeholder="Enter your full name" required>
+                    </div>
+
+                    <div class="row">
+                      <div>
+                        <label for="email">Email</label>
+                        <div class="field-icon">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                          <input type="email" id="email" placeholder="Enter your email address" required>
+                        </div>
+                      </div>
+                      <div>
+                        <label for="company">Company Name</label>
+                        <div class="field-icon">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 21h18M5 21V7l8-4v18M13 21V11l6 3v7M9 9v.01M9 12v.01M9 15v.01"/></svg>
+                          <input type="text" id="company" placeholder="Enter your company name">
+                        </div>
+                      </div>
+                    </div>
+
+                    <label for="signature">Type Your Signature</label>
+                    <input type="text" id="signature" class="signature" placeholder="" required>
+
+                    <label for="signed_at">Date</label>
+                    <div class="field-icon date-field">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                      <span id="signed_at"></span>
+                    </div>
+
+                    <hr>
+
+                    <div class="footer-row">
+                      <label class="agree">
+                        <input type="checkbox" id="agree_terms">
+                        I agree to the <a id="terms_link" href="#" target="_blank" rel="noopener">terms and conditions</a>
+                      </label>
+                      <button type="button" id="submit_btn">SUBMIT <span class="dot"></span></button>
+                    </div>
+
+                    <p id="confirmation" class="confirmation" hidden></p>
+                  </div>
+
+                  <script src="script.js"></script>
+                </body>
+                </html>
+
+                HTML],
+            ['filename' => 'style.css', 'type' => 'css', 'sort_order' => 1, 'content' => <<<'CSS'
+                body { font-family: system-ui, sans-serif; background: #f3f4f6; margin: 0; padding: 60px 20px; display: flex; justify-content: center; }
+                .card { background: #0b0b0d; color: #fff; max-width: 640px; width: 100%; border-radius: 16px; padding: 40px; box-shadow: 0 20px 40px rgba(0,0,0,.25); box-sizing: border-box; }
+                .card h1 { margin: 0 0 8px; font-size: 1.5rem; }
+                .intro { color: #9ca3af; margin: 0 0 28px; line-height: 1.5; }
+                label { display: block; font-weight: 600; margin: 20px 0 8px; }
+                .row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+                .row > div { min-width: 0; }
+                .field-icon { position: relative; }
+                .field-icon svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: #6b7280; }
+                .field-icon input, .field-icon span { display: block; width: 100%; box-sizing: border-box; padding: 14px 14px 14px 44px; border-radius: 8px; border: 1px solid #27272a; background: #18181b; color: #fff; font-size: .95rem; }
+                .field-icon input::placeholder { color: #6b7280; }
+                .date-field span { color: #d1d5db; }
+                .signature { width: 100%; box-sizing: border-box; padding: 24px 20px; border-radius: 8px; border: 2px solid #93c5fd; background: #fff; color: #111827; font-family: 'Brush Script MT', 'Segoe Script', cursive; font-size: 2.5rem; }
+                .signature::placeholder { font-family: system-ui, sans-serif; font-size: 1rem; color: #9ca3af; }
+                hr { border: none; border-top: 1px solid #27272a; margin: 32px 0 24px; }
+                .footer-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+                .agree { display: flex; align-items: center; gap: 10px; font-weight: 400; margin: 0; }
+                .agree input { width: 18px; height: 18px; }
+                .agree a { color: #6366f1; text-decoration: none; }
+                .agree a:hover { text-decoration: underline; }
+                #submit_btn { background: #4f46e5; color: #fff; border: none; padding: 14px 28px; border-radius: 999px; font-weight: 700; letter-spacing: .03em; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+                #submit_btn:hover { background: #4338ca; }
+                #submit_btn:disabled { opacity: .6; cursor: default; }
+                #submit_btn .dot { width: 8px; height: 8px; border-radius: 50%; background: #fff; }
+                .confirmation { margin-top: 20px; font-weight: 600; }
+                CSS],
+            ['filename' => 'script.js', 'type' => 'js', 'sort_order' => 2, 'content' => <<<'JS'
+                // Set this to the terms and conditions page you want signers to read — any URL, including
+                // a page on your own site.
+                const TERMS_URL = "https://example.com/terms";
+
+                const fullName = document.getElementById('full_name');
+                const email = document.getElementById('email');
+                const company = document.getElementById('company');
+                const signature = document.getElementById('signature');
+                const agreeTerms = document.getElementById('agree_terms');
+                const submitBtn = document.getElementById('submit_btn');
+                const confirmation = document.getElementById('confirmation');
+                const signedAtEl = document.getElementById('signed_at');
+
+                document.getElementById('terms_link').href = TERMS_URL;
+                signedAtEl.textContent = new Date().toISOString().slice(0, 10);
+
+                function lockForm(message) {
+                  [fullName, email, company, signature, agreeTerms, submitBtn].forEach(field => field.disabled = true);
+                  confirmation.hidden = false;
+                  confirmation.style.color = '#16a34a';
+                  confirmation.textContent = message;
+                }
+
+                function showError(message) {
+                  confirmation.hidden = false;
+                  confirmation.style.color = '#f87171';
+                  confirmation.textContent = message;
+                }
+
+                // Once someone has signed via this link, the agreement is locked — reloading
+                // (even in a different tab) shows the same read-only receipt, it never resets.
+                (async function checkAlreadySigned() {
+                  if (!window.ReportlyAgreement) return;
+                  const state = await window.ReportlyAgreement.check();
+                  if (state.signed) lockForm(`Signed by ${state.full_name} on ${state.signed_at}.`);
+                })();
+
+                submitBtn.addEventListener('click', async () => {
+                  const missing = [fullName, email, signature].filter(field => !field.value.trim());
+                  [fullName, email, signature].forEach(field => field.style.borderColor = '');
+                  missing.forEach(field => field.style.borderColor = '#ef4444');
+
+                  if (missing.length || !agreeTerms.checked) {
+                    showError(!agreeTerms.checked
+                      ? 'Please agree to the terms and conditions before submitting.'
+                      : 'Please fill in all required fields.');
+                    return;
+                  }
+
+                  if (!window.ReportlyAgreement) {
+                    // No share link yet (e.g. viewing inside the editor) — nothing to save to.
+                    lockForm(`Signed by ${fullName.value.trim()} on ${signedAtEl.textContent}. (preview only — publish a share link to save real signatures)`);
+                    return;
+                  }
+
+                  submitBtn.disabled = true;
+                  const result = await window.ReportlyAgreement.submit({
+                    full_name: fullName.value.trim(),
+                    email: email.value.trim(),
+                    company_name: company.value.trim(),
+                    signature_text: signature.value.trim(),
+                    terms_url: TERMS_URL,
+                    agree_terms: agreeTerms.checked,
+                  });
+
+                  if (result.signed) {
+                    lockForm(`Signed by ${result.full_name} on ${result.signed_at}.`);
+                  } else {
+                    submitBtn.disabled = false;
+                    showError(result.error || 'Could not submit — please try again.');
+                  }
+                });
+                JS],
         ];
     }
 }

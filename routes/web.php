@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AgreementController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\FolderController;
 use App\Http\Controllers\MediaController;
@@ -72,5 +73,7 @@ Route::post('/r/{slug}/comments', [CommentController::class, 'store'])->name('sh
 Route::get('/r/{slug}/comments', [ShareViewController::class, 'comments'])->name('share.comments.index');
 Route::post('/r/{slug}/approve', [ShareViewController::class, 'approve'])->name('share.approve');
 Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
+Route::get('/r/{slug}/agreement', [AgreementController::class, 'show'])->name('share.agreement.show');
+Route::post('/r/{slug}/agreement', [AgreementController::class, 'store'])->name('share.agreement.store');
 
 require __DIR__.'/auth.php';

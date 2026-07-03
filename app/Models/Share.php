@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 
 class Share extends Model
@@ -62,6 +63,11 @@ class Share extends Model
     public function viewLogs(): HasMany
     {
         return $this->hasMany(ViewLog::class);
+    }
+
+    public function agreementSignature(): HasOne
+    {
+        return $this->hasOne(AgreementSignature::class);
     }
 
     public function isExpired(): bool
