@@ -1,58 +1,53 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Reportly
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Send a live link. Not another PDF.
 
-## About Laravel
+Reportly is a multi-tenant tool for sales, SEO, and marketing teams to build client reports, proposals, pricing pages, and agreements as real HTML/CSS/JS — then share them as a single link clients can view, comment on, and sign, instead of sending static files.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Features
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- **Multi-file editor** — HTML/CSS/JS files per project with a CodeMirror-based editor (autocomplete, syntax highlighting) and a live preview pane.
+- **Starter templates** — blank, SEO report, pricing page, proposal, and agreement/NDA (with a typed signature, terms checkbox, and email notification on signing).
+- **Shareable links** — public or password-protected, optional expiry, custom or random slugs.
+- **Client comments** — Figma-style click-to-pin comments and replies directly on the live report, with guest identity handled via a long-lived cookie so guests can only delete their own comments.
+- **Approval/sign-off** — clients can approve a report or request changes right from the share page.
+- **Version history** — snapshot a project and restore it later; restoring always backs up the current state first.
+- **Media library** — upload once, reuse the file's URL across any report.
+- **Dashboard at scale** — server-side search, sort, tagging, and folders, built to stay fast with hundreds of reports.
+- **Email notifications** — notify your team when a client first opens a report, leaves a comment, or signs an agreement.
+- **Admin panel** — platform admins can see all organizations, users, and projects across tenants.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Stack
 
-## Learning Laravel
+- Laravel (Blade, Eloquent, Breeze auth)
+- MySQL
+- Alpine.js + Tailwind CSS
+- CodeMirror 6 (via ESM CDN)
+- Vite
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## Local setup
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+composer install
+npm install
+cp .env.example .env
+php artisan key:generate
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Configure a MySQL database in `.env`, then:
 
-## Contributing
+```bash
+php artisan migrate
+npm run build
+php artisan serve
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+For local development, set `MAIL_MAILER=log` so notification emails write to `storage/logs/laravel.log` instead of sending.
 
-## Code of Conduct
+## Deployment notes
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+This app is built to run on shared hosting without SSH, Composer, or Node access at the server (only Git deployment via cPanel):
 
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+- `vendor/` and `public/build/` are committed so no build step is needed on the server.
+- Comment updates use polling rather than WebSockets, since there's no persistent socket/queue infrastructure.
+- Notification emails send synchronously rather than through a queue, since there's no queue worker — only cron.
