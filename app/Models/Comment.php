@@ -18,6 +18,7 @@ class Comment extends Model
         'user_id',
         'guest_name',
         'guest_email',
+        'guest_token',
         'body',
         'position_x',
         'position_y',
@@ -58,5 +59,13 @@ class Comment extends Model
         return $this->author_type === 'guest'
             ? ($this->guest_name ?? 'Guest')
             : ($this->user?->name ?? 'Team member');
+    }
+
+    public function isOwnedByGuestToken(string $token): bool
+    {
+        return $this->author_type === 'guest'
+            && $this->guest_token
+            && $token !== ''
+            && hash_equals($this->guest_token, $token);
     }
 }

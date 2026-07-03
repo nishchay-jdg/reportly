@@ -2,14 +2,22 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\NewCommentPosted;
 use App\Models\Comment;
 use App\Models\Share;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class CommentController extends Controller
 {
-    public function store(Request $request, string $slug): RedirectResponse
+    private const GUEST_COOKIE = 'guest_uuid';
+
+    public function store(Request $request, string $slug): RedirectResponse|JsonResponse
     {
         $share = Share::where('slug', $slug)->firstOrFail();
 
@@ -23,32 +31,116 @@ class CommentController extends Controller
             'body' => ['required', 'string', 'max:2000'],
             'position_x' => ['nullable', 'numeric', 'between:0,100'],
             'position_y' => ['nullable', 'numeric', 'between:0,100'],
+            // A reply's parent may have been deleted by another viewer a moment ago —
+            // validate it still exists and isn't itself a reply (no nesting past 1 level).
             'parent_id' => ['nullable', 'exists:comments,id'],
             'guest_name' => [$isGuest ? 'required' : 'nullable', 'string', 'max:120'],
             'guest_email' => ['nullable', 'email', 'max:180'],
         ]);
 
-        Comment::create([
+        // Guests aren't authenticated, so "can only delete your own comment" is enforced via
+        // a long-lived identity cookie rather than a user id — set once, reused on return visits.
+        $guestToken = null;
+        if ($isGuest) {
+            $guestToken = $request->cookie(self::GUEST_COOKIE) ?: (string) Str::uuid();
+            if (! $request->cookie(self::GUEST_COOKIE)) {
+                Cookie::queue(self::GUEST_COOKIE, $guestToken, 60 * 24 * 365 * 2);
+            }
+        }
+
+        $comment = Comment::create([
             'share_id' => $share->id,
             'parent_id' => $data['parent_id'] ?? null,
             'author_type' => $isGuest ? 'guest' : 'team',
             'user_id' => $request->user()?->id,
             'guest_name' => $isGuest ? $data['guest_name'] : null,
             'guest_email' => $isGuest ? ($data['guest_email'] ?? null) : null,
+            'guest_token' => $guestToken,
             'body' => $data['body'],
             'position_x' => $data['position_x'] ?? null,
             'position_y' => $data['position_y'] ?? null,
         ]);
 
+        // Only notify on the client's own feedback — a team member replying to their own
+        // thread shouldn't email the team about itself.
+        if ($isGuest) {
+            $this->notifyNewComment($comment);
+        }
+
+        if ($request->wantsJson()) {
+            return response()->json(['id' => $comment->id]);
+        }
+
         return back()->with('status', 'Comment added.');
     }
 
-    public function resolve(Request $request, Comment $comment): RedirectResponse
+    private function notifyNewComment(Comment $comment): void
     {
-        abort_unless($request->user(), 403);
+        $org = $comment->share->organization;
+
+        if (! $org->notify_on_comment || ! $org->notification_email) {
+            return;
+        }
+
+        try {
+            Mail::to($org->notification_email)->send(new NewCommentPosted($comment));
+        } catch (\Throwable $e) {
+            Log::warning('Failed to send new-comment notification', ['comment_id' => $comment->id, 'error' => $e->getMessage()]);
+        }
+    }
+
+    public function resolve(Request $request, Comment $comment): RedirectResponse|JsonResponse
+    {
+        $this->authorizeTeamAccess($request, $comment);
 
         $comment->update(['is_resolved' => ! $comment->is_resolved]);
 
+        if ($request->wantsJson()) {
+            return response()->json(['is_resolved' => $comment->is_resolved]);
+        }
+
         return back();
+    }
+
+    public function destroy(Request $request, Comment $comment): RedirectResponse|JsonResponse
+    {
+        $this->authorizeDeleteAccess($request, $comment);
+
+        // Replies cascade-delete at the DB level (comments.parent_id is cascadeOnDelete).
+        $comment->delete();
+
+        if ($request->wantsJson()) {
+            return response()->json(['deleted' => true]);
+        }
+
+        return back()->with('status', 'Comment deleted.');
+    }
+
+    private function authorizeTeamAccess(Request $request, Comment $comment): void
+    {
+        $user = $request->user();
+
+        abort_unless($user, 403);
+        abort_unless(
+            $user->is_platform_admin || $user->organization_id === $comment->share->organization_id,
+            403
+        );
+    }
+
+    private function authorizeDeleteAccess(Request $request, Comment $comment): void
+    {
+        if ($request->user()) {
+            $this->authorizeTeamAccess($request, $comment);
+
+            return;
+        }
+
+        // A guest may only delete a comment tied to their own identity cookie.
+        abort_unless(
+            $comment->author_type === 'guest'
+                && $comment->guest_token
+                && hash_equals($comment->guest_token, (string) $request->cookie(self::GUEST_COOKIE)),
+            403
+        );
     }
 }
