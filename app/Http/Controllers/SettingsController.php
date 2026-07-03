@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BrandKit;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
@@ -48,7 +49,12 @@ class SettingsController extends Controller
         ]);
 
         $org = $request->user()->organization;
-        $brandKit = $org->brandKit ?? $org->brandKit()->make();
+
+        // Queried fresh rather than via $org->brandKit — that relation may already be
+        // cached as null from an earlier access in this same request (e.g. a view
+        // composer), which would otherwise make this always take the "create" branch
+        // and insert a duplicate row on every save after the first.
+        $brandKit = BrandKit::withoutGlobalScopes()->firstOrNew(['organization_id' => $org->id]);
 
         // Stored directly under public/, same as the media library — not the storage/
         // disk + symlink, which doesn't reliably survive a git-based cPanel deploy.
@@ -75,7 +81,10 @@ class SettingsController extends Controller
             'secondary_color' => $data['secondary_color'] ?? $brandKit->secondary_color ?? '#1e293b',
             'font_family' => $brandKit->font_family ?? 'Inter',
             'footer_text' => $data['footer_text'] ?? null,
-            'logo_path' => $data['logo_path'] ?? $brandKit->logo_path,
+            // array_key_exists, not ??  — a removed logo sets $data['logo_path'] to an
+            // explicit null, which ?? would treat the same as "not provided" and silently
+            // keep the old path instead of clearing it.
+            'logo_path' => array_key_exists('logo_path', $data) ? $data['logo_path'] : $brandKit->logo_path,
         ])->save();
 
         return back()->with('status', 'Brand kit updated.');

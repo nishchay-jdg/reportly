@@ -19,6 +19,7 @@ class RegistrationTest extends TestCase
     public function test_new_users_can_register(): void
     {
         $response = $this->post('/register', [
+            'organization_name' => 'Acme Marketing',
             'name' => 'Test User',
             'email' => 'test@example.com',
             'password' => 'password',
@@ -27,5 +28,21 @@ class RegistrationTest extends TestCase
 
         $this->assertAuthenticated();
         $response->assertRedirect(route('dashboard', absolute: false));
+    }
+
+    public function test_registration_creates_an_organization_and_defaults_the_notification_email(): void
+    {
+        $this->post('/register', [
+            'organization_name' => 'Acme Marketing',
+            'name' => 'Test User',
+            'email' => 'test@example.com',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+        ]);
+
+        $user = \App\Models\User::where('email', 'test@example.com')->firstOrFail();
+        $this->assertSame('org_admin', $user->role);
+        $this->assertSame('Acme Marketing', $user->organization->name);
+        $this->assertSame('test@example.com', $user->organization->notification_email);
     }
 }

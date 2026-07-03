@@ -127,10 +127,17 @@ class CommentController extends Controller
         $user = $request->user();
 
         abort_unless($user, 403);
-        abort_unless(
-            $user->is_platform_admin || $user->organization_id === $comment->share->organization_id,
-            403
-        );
+
+        if ($user->is_platform_admin) {
+            return;
+        }
+
+        // Share has an organization-scoping global scope, so $comment->share silently
+        // resolves to null (not 403) when the authenticated user belongs to a different
+        // org than the comment's share — query around the scope to get a real comparison.
+        $shareOrgId = Share::withoutGlobalScope('organization')->whereKey($comment->share_id)->value('organization_id');
+
+        abort_unless($user->organization_id === $shareOrgId, 403);
     }
 
     private function authorizeDeleteAccess(Request $request, Comment $comment): void

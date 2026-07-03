@@ -26,7 +26,7 @@ class ShareController extends Controller
         $share = Share::create([
             'project_id' => $project->id,
             'created_by' => $request->user()->id,
-            'slug' => $data['slug'] ?: $this->uniqueSlug($project->name),
+            'slug' => ($data['slug'] ?? null) ?: $this->uniqueSlug($project->name),
             'visibility' => $data['visibility'],
             'password_hash' => $data['visibility'] === 'password' ? Hash::make($data['password']) : null,
             'expires_at' => $data['expires_at'] ?? null,
