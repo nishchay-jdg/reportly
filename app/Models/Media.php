@@ -20,6 +20,15 @@ class Media extends Model
         'size',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'organization_id' => 'integer',
+            'uploaded_by' => 'integer',
+            'size' => 'integer',
+        ];
+    }
+
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);

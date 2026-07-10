@@ -32,6 +32,9 @@ class Share extends Model
     protected function casts(): array
     {
         return [
+            'organization_id' => 'integer',
+            'project_id' => 'integer',
+            'created_by' => 'integer',
             'expires_at' => 'datetime',
             'is_active' => 'boolean',
             'allow_guest_comments' => 'boolean',

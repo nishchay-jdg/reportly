@@ -20,6 +20,7 @@ class ViewLog extends Model
     protected function casts(): array
     {
         return [
+            'share_id' => 'integer',
             'viewed_at' => 'datetime',
         ];
     }

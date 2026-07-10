@@ -21,6 +21,13 @@ class BrandKit extends Model
         'footer_text',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'organization_id' => 'integer',
+        ];
+    }
+
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);

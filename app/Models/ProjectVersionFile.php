@@ -18,6 +18,13 @@ class ProjectVersionFile extends Model
         'sort_order',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'project_version_id' => 'integer',
+        ];
+    }
+
     public function version(): BelongsTo
     {
         return $this->belongsTo(ProjectVersion::class, 'project_version_id');

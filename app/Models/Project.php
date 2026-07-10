@@ -21,6 +21,15 @@ class Project extends Model
         'description',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'organization_id' => 'integer',
+            'folder_id' => 'integer',
+            'created_by' => 'integer',
+        ];
+    }
+
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);

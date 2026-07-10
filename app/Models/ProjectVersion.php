@@ -17,6 +17,14 @@ class ProjectVersion extends Model
         'label',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'project_id' => 'integer',
+            'created_by' => 'integer',
+        ];
+    }
+
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);

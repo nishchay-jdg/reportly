@@ -28,6 +28,9 @@ class Comment extends Model
     protected function casts(): array
     {
         return [
+            'share_id' => 'integer',
+            'parent_id' => 'integer',
+            'user_id' => 'integer',
             'is_resolved' => 'boolean',
             'position_x' => 'float',
             'position_y' => 'float',

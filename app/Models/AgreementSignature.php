@@ -21,6 +21,7 @@ class AgreementSignature extends Model
     protected function casts(): array
     {
         return [
+            'share_id' => 'integer',
             'signed_at' => 'datetime',
         ];
     }

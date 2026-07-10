@@ -135,9 +135,12 @@ class CommentController extends Controller
         // Share has an organization-scoping global scope, so $comment->share silently
         // resolves to null (not 403) when the authenticated user belongs to a different
         // org than the comment's share — query around the scope to get a real comparison.
-        $shareOrgId = Share::withoutGlobalScope('organization')->whereKey($comment->share_id)->value('organization_id');
+        // ->value() is a raw query builder call, not a hydrated model, so it bypasses
+        // Share's own attribute casts — cast explicitly rather than relying on whatever
+        // type the DB driver happens to return for an integer column.
+        $shareOrgId = (int) Share::withoutGlobalScope('organization')->whereKey($comment->share_id)->value('organization_id');
 
-        abort_unless($user->organization_id === $shareOrgId, 403);
+        abort_unless((int) $user->organization_id === $shareOrgId, 403);
     }
 
     private function authorizeDeleteAccess(Request $request, Comment $comment): void

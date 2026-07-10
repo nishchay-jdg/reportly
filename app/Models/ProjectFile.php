@@ -18,6 +18,13 @@ class ProjectFile extends Model
         'sort_order',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'project_id' => 'integer',
+        ];
+    }
+
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);

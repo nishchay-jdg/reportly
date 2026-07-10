@@ -19,6 +19,15 @@ class Folder extends Model
         'name',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'organization_id' => 'integer',
+            'parent_id' => 'integer',
+            'created_by' => 'integer',
+        ];
+    }
+
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);
