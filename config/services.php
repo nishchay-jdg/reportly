@@ -35,4 +35,15 @@ return [
         ],
     ],
 
+    // Lets the admin panel trigger a cPanel Git Version Control deploy (pull + run
+    // .cpanel.yml tasks) without SSH — see App\Services\CpanelDeployService.
+    'cpanel' => [
+        'host' => env('CPANEL_HOST'),
+        'port' => env('CPANEL_PORT', 2083),
+        'username' => env('CPANEL_USERNAME'),
+        'api_token' => env('CPANEL_API_TOKEN'),
+        'repository_root' => env('CPANEL_REPOSITORY_ROOT'),
+        'branch' => env('CPANEL_BRANCH', 'main'),
+    ],
+
 ];

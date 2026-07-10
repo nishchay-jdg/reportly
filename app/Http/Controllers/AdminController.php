@@ -16,7 +16,12 @@ class AdminController extends Controller
             ->orderBy('name')
             ->paginate(20);
 
-        return view('admin.index', compact('organizations'));
+        $deployConfigured = filled(config('services.cpanel.host'))
+            && filled(config('services.cpanel.username'))
+            && filled(config('services.cpanel.api_token'))
+            && filled(config('services.cpanel.repository_root'));
+
+        return view('admin.index', compact('organizations', 'deployConfigured'));
     }
 
     public function users(): View

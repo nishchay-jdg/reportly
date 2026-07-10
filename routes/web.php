@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AgreementController;
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\DeployController;
 use App\Http\Controllers\FolderController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\ProfileController;
@@ -67,6 +68,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [AdminController::class, 'index'])->name('index');
         Route::get('/users', [AdminController::class, 'users'])->name('users');
         Route::post('/users/{user}/toggle-platform-admin', [AdminController::class, 'togglePlatformAdmin'])->name('users.toggle-platform-admin');
+        Route::post('/deploy', [DeployController::class, 'store'])->name('deploy.store');
+        Route::get('/deploy/status', [DeployController::class, 'status'])->name('deploy.status');
     });
 });
 
