@@ -1,0 +1,17 @@
+---
+# Runs automatically when you click "Deploy HEAD Commit" in cPanel's Git Version
+# Control. cPanel executes these with the working directory already set to this
+# repository's root — no cd/DEPLOYPATH needed since the repo root *is* the deployed
+# app (its public/ subfolder is the domain's document root).
+#
+# The PHP binary path below (ea-php84) is cPanel/EasyApache's convention for a
+# versioned PHP CLI binary — confirm the exact path for this host (it may be
+# ea-php84, or something else) before relying on this; if it's wrong, the deploy
+# will fail with "command not found" and you can adjust it here.
+deployment:
+  tasks:
+    - /usr/local/bin/ea-php84 artisan migrate --force
+    - /usr/local/bin/ea-php84 artisan config:clear
+    - /usr/local/bin/ea-php84 artisan cache:clear
+    - /usr/local/bin/ea-php84 artisan view:clear
+    - /usr/local/bin/ea-php84 artisan route:clear

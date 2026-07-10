@@ -26,12 +26,13 @@ This app is built to run on shared cPanel hosting with **Git Version Control** a
 
 ## Every deploy
 
-cPanel's Git Version Control has a "Pull or Deploy" / "Update from Remote" action — use that to pull `main`. Since there's no Composer/Node step available, `vendor/` and `public/build/` are committed to git and travel with the pull; you don't need to run an install step.
+This repo includes a `.cpanel.yml` at its root, which cPanel's Git Version Control runs automatically whenever you click **"Deploy HEAD Commit"** in its UI (Git Version Control → your repo → Manage → Pull or Deploy). It runs `migrate --force`, then clears the config/route/view caches — so a normal deploy is: push to `main` on GitHub, click Deploy in cPanel, done. No Terminal/SSH needed; cPanel executes these tasks itself as part of the deploy action, which is a different (and available) mechanism from an interactive shell.
 
-After pulling, you still need to run migrations — there's no SSH, so use one of:
-- cPanel's Terminal (if available on your plan): `php artisan migrate --force`
-- A cPanel **Cron Job** that runs once (`php /path/to/app/artisan migrate --force`), which you trigger manually via "Run Now" if cPanel supports it, then disable/delete afterward
-- If neither is available, ask your host — some cPanel setups expose a "Run Composer/Artisan Commands" button in the Git Version Control UI itself
+Two things to verify once, the first time you set this up:
+- **The PHP binary path.** `.cpanel.yml` calls `/usr/local/bin/ea-php84` — that's cPanel/EasyApache's usual convention for a versioned PHP CLI binary, but hosts vary. If a deploy fails with something like "command not found," check cPanel → Select PHP Version (or ask your host) for the actual CLI binary path and update `.cpanel.yml` accordingly.
+- **The repository path matches the live site.** These tasks assume the git repo's root is the actual deployed app (not a separate staging clone that then gets copied over) — i.e., the same layout as the rest of this doc: `<repo-path>/public` is the domain's document root. If your Git Version Control repo path is somewhere else and gets copied to the live directory separately, these tasks need to target that live directory instead.
+
+If a deploy ever needs a command outside this fixed set (a new migration needing `--force` is already covered, but e.g. a one-off `artisan tinker` fix isn't), fall back to a temporary web-accessible script the way `deploy-tools.php` was used during initial setup — never leave one of those sitting on the server.
 
 **`--force` is required** — Laravel refuses to run migrations in `APP_ENV=production` without it, since it's a safety check against exactly this kind of unattended deploy.
 
