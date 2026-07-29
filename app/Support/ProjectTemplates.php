@@ -117,7 +117,7 @@ class ProjectTemplates
 
                 HTML],
             ['filename' => 'style.css', 'type' => 'css', 'sort_order' => 1, 'content' => <<<'CSS'
-                body { font-family: system-ui, sans-serif; max-width: 860px; margin: 0 auto; padding: 40px 20px; color: #1f2937; }
+                body { font-family: system-ui, sans-serif; margin: 0 auto; padding: 40px 20px; color: #1f2937; }
                 header { margin-bottom: 32px; }
                 .period { color: #6b7280; margin-top: 4px; }
                 .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 40px; }
