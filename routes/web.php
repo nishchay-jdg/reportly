@@ -13,10 +13,19 @@ use App\Http\Controllers\ProjectVersionController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\ShareController;
 use App\Http\Controllers\ShareViewController;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
+});
+
+Route::get('/migrate', function () {
+    Artisan::call('migrate');
+
+    return response(Artisan::output(), 200, [
+        'Content-Type' => 'text/plain; charset=UTF-8',
+    ]);
 });
 
 Route::get('/dashboard', [ProjectController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
