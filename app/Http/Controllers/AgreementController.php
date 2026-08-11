@@ -20,7 +20,7 @@ class AgreementController extends Controller
      */
     public function show(Request $request, string $slug): JsonResponse
     {
-        $share = Share::where('slug', $slug)->firstOrFail();
+        $share = Share::findPublicBySlug($slug);
 
         abort_unless($share->isAccessible(), 410);
         $this->abortUnlessUnlocked($request, $share);
@@ -30,7 +30,7 @@ class AgreementController extends Controller
 
     public function store(Request $request, string $slug): JsonResponse
     {
-        $share = Share::where('slug', $slug)->firstOrFail();
+        $share = Share::findPublicBySlug($slug);
 
         abort_unless($share->isAccessible(), 410);
         $this->abortUnlessUnlocked($request, $share);

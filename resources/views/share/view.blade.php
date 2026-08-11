@@ -1,12 +1,11 @@
 @php
-    $brand = $share->project->organization->brandKit;
-    $doc = $share->project->renderPreviewHtml(reportHeight: true);
+    $doc = $project->renderPreviewHtml(reportHeight: true);
 @endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>{{ $share->project->name }}</title>
+    <title>{{ $project->name }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         :root { --brand-primary: {{ $brand->primary_color ?? '#2563eb' }}; }
@@ -22,8 +21,8 @@
         shareViewUrl: '{{ route('share.view', $share->slug) }}',
         csrf: '{{ csrf_token() }}',
         allowComments: {{ $share->allow_guest_comments ? 'true' : 'false' }},
-        isTeamMember: {{ auth()->check() ? 'true' : 'false' }},
-        currentUserName: {{ auth()->check() ? json_encode(auth()->user()->name) : 'null' }},
+        isTeamMember: {{ $viewerIsTeamMember ? 'true' : 'false' }},
+        currentUserName: {{ $viewerIsTeamMember ? json_encode(auth()->user()->name) : 'null' }},
         initialPins: {{ Illuminate\Support\Js::from($pins) }},
     })">
 
@@ -32,7 +31,7 @@
             @if ($brand?->logo_path)
                 <img src="{{ asset($brand->logo_path) }}" class="h-7" alt="logo">
             @endif
-            <span class="font-semibold text-gray-800 dark:text-gray-100">{{ $share->project->name }}</span>
+            <span class="font-semibold text-gray-800 dark:text-gray-100">{{ $project->name }}</span>
         </div>
 
         <div class="relative" x-data="{ open: false }">

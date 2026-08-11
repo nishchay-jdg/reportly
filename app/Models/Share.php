@@ -81,4 +81,18 @@ class Share extends Model
     {
         return $this->is_active && ! $this->isExpired();
     }
+
+    public static function findPublicBySlug(string $slug): self
+    {
+        return static::query()
+            ->withoutGlobalScope('organization')
+            ->where('slug', $slug)
+            ->firstOrFail();
+    }
+
+    public function viewerIsTeamMember(?User $user): bool
+    {
+        return $user !== null
+            && ($user->is_platform_admin || (int) $user->organization_id === (int) $this->organization_id);
+    }
 }

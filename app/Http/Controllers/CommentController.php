@@ -19,11 +19,11 @@ class CommentController extends Controller
 
     public function store(Request $request, string $slug): RedirectResponse|JsonResponse
     {
-        $share = Share::where('slug', $slug)->firstOrFail();
+        $share = Share::findPublicBySlug($slug);
 
         abort_unless($share->isAccessible(), 410);
 
-        $isGuest = ! $request->user();
+        $isGuest = ! $share->viewerIsTeamMember($request->user());
 
         abort_if($isGuest && ! $share->allow_guest_comments, 403, 'Comments are disabled on this link.');
 
@@ -52,7 +52,7 @@ class CommentController extends Controller
             'share_id' => $share->id,
             'parent_id' => $data['parent_id'] ?? null,
             'author_type' => $isGuest ? 'guest' : 'team',
-            'user_id' => $request->user()?->id,
+            'user_id' => $isGuest ? null : $request->user()?->id,
             'guest_name' => $isGuest ? $data['guest_name'] : null,
             'guest_email' => $isGuest ? ($data['guest_email'] ?? null) : null,
             'guest_token' => $guestToken,
@@ -82,7 +82,11 @@ class CommentController extends Controller
 
     private function notifyNewComment(Comment $comment): void
     {
-        $org = $comment->share->organization;
+        $share = Share::query()
+            ->withoutGlobalScope('organization')
+            ->with('organization')
+            ->findOrFail($comment->share_id);
+        $org = $share->organization;
 
         if (! $org->notify_on_comment || ! $org->notification_email) {
             return;

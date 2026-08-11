@@ -87,6 +87,20 @@ class ShareTest extends TestCase
         $this->get("/r/{$share->slug}")->assertStatus(410);
     }
 
+    public function test_public_share_is_still_accessible_when_authenticated_to_another_organization(): void
+    {
+        [$user, $project] = $this->projectOwner();
+        $share = Share::factory()->for($project)->create();
+
+        $outsiderOrg = Organization::factory()->create();
+        $outsider = User::factory()->create(['organization_id' => $outsiderOrg->id]);
+
+        $this->actingAs($outsider)
+            ->get("/r/{$share->slug}")
+            ->assertOk()
+            ->assertSee($project->name);
+    }
+
     public function test_inactive_share_is_not_accessible(): void
     {
         [$user, $project] = $this->projectOwner();

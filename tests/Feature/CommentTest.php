@@ -60,6 +60,27 @@ class CommentTest extends TestCase
         Mail::assertSent(NewCommentPosted::class);
     }
 
+    public function test_authenticated_user_from_another_org_posts_as_guest_on_public_share(): void
+    {
+        $share = $this->shareWithOrg();
+        $outsider = User::factory()->create(['organization_id' => Organization::factory()->create()->id]);
+
+        $this->actingAs($outsider)->post("/r/{$share->slug}/comments", [
+            'body' => 'Client feedback',
+            'guest_name' => 'Outside Viewer',
+            'position_x' => 10,
+            'position_y' => 20,
+        ])->assertRedirect();
+
+        $this->assertDatabaseHas('comments', [
+            'share_id' => $share->id,
+            'body' => 'Client feedback',
+            'author_type' => 'guest',
+            'user_id' => null,
+            'guest_name' => 'Outside Viewer',
+        ]);
+    }
+
     public function test_guest_can_only_delete_their_own_comment(): void
     {
         $share = $this->shareWithOrg();

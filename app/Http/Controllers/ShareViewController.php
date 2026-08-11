@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Mail\ReportFirstViewed;
+use App\Models\BrandKit;
+use App\Models\Project;
 use App\Models\Share;
 use App\Models\ViewLog;
 use Illuminate\Http\JsonResponse;
@@ -17,7 +19,16 @@ class ShareViewController extends Controller
 {
     public function show(Request $request, string $slug): View
     {
-        $share = Share::where('slug', $slug)->with('project.files', 'project.organization.brandKit')->firstOrFail();
+        $share = Share::findPublicBySlug($slug);
+        $project = Project::query()
+            ->withoutGlobalScope('organization')
+            ->with('files')
+            ->findOrFail($share->project_id);
+        $brand = BrandKit::query()
+            ->withoutGlobalScope('organization')
+            ->where('organization_id', $share->organization_id)
+            ->first();
+        $viewerIsTeamMember = $share->viewerIsTeamMember($request->user());
 
         abort_unless($share->isAccessible(), 410, 'This link is no longer available.');
 
@@ -40,12 +51,12 @@ class ShareViewController extends Controller
 
         $pins = $this->pinsPayload($share, $request);
 
-        return view('share.view', compact('share', 'pins'));
+        return view('share.view', compact('share', 'project', 'brand', 'pins', 'viewerIsTeamMember'));
     }
 
     public function approve(Request $request, string $slug): RedirectResponse
     {
-        $share = Share::where('slug', $slug)->firstOrFail();
+        $share = Share::findPublicBySlug($slug);
 
         abort_unless($share->isAccessible(), 410);
 
@@ -73,7 +84,7 @@ class ShareViewController extends Controller
      */
     public function comments(Request $request, string $slug): JsonResponse
     {
-        $share = Share::where('slug', $slug)->firstOrFail();
+        $share = Share::findPublicBySlug($slug);
 
         abort_unless($share->isAccessible(), 410);
 
@@ -86,7 +97,7 @@ class ShareViewController extends Controller
 
     public function unlock(Request $request, string $slug): RedirectResponse
     {
-        $share = Share::where('slug', $slug)->firstOrFail();
+        $share = Share::findPublicBySlug($slug);
 
         abort_unless($share->isAccessible(), 410, 'This link is no longer available.');
 
