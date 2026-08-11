@@ -109,6 +109,16 @@ class ShareTest extends TestCase
         $this->get("/r/{$share->slug}")->assertStatus(410);
     }
 
+    public function test_share_preview_tracks_visible_report_sections_for_comments(): void
+    {
+        [, $project] = $this->projectOwner();
+
+        $this->assertStringContainsString(
+            'section[id]',
+            $project->renderPreviewHtml(reportHeight: true)
+        );
+    }
+
     public function test_destroy_removes_the_share(): void
     {
         [$user, $project] = $this->projectOwner();

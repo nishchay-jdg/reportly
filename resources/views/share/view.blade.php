@@ -83,7 +83,7 @@
                     x-bind:style="`height:${frameHeight}px; pointer-events:${tool === 'select' ? 'auto' : 'none'}`"
                     sandbox="allow-scripts"></iframe>
 
-            <template x-for="pin in pins" :key="pin.id">
+            <template x-for="pin in visiblePins" :key="pin.id">
                 <div class="absolute w-7 h-7 -ml-3.5 -mt-3.5 rounded-full flex items-center justify-center shadow-md ring-2 cursor-pointer"
                      :class="openThreadId === pin.id ? 'ring-indigo-500' : 'ring-white dark:ring-gray-800'"
                      :style="`left:${pin.position_x}%; top:${pin.position_y}%; background-color:${pin.is_resolved ? '#9ca3af' : avatarColor(pin.author)}`"
@@ -219,6 +219,8 @@
                 replyBody: '',
                 isTeamMember: config.isTeamMember,
                 currentUserName: config.currentUserName,
+                activeReportContext: 'default',
+                legacyReportContext: null,
 
                 init() {
                     window.addEventListener('message', async (e) => {
@@ -226,6 +228,18 @@
 
                         if (e.data?.reportToolHeight) {
                             this.frameHeight = e.data.reportToolHeight;
+                        }
+
+                        if (e.data?.reportlyContext) {
+                            const nextContext = e.data.reportlyContext;
+                            if (this.legacyReportContext === null) {
+                                this.legacyReportContext = nextContext;
+                            }
+                            if (this.activeReportContext !== nextContext) {
+                                this.activeReportContext = nextContext;
+                                this.draft = null;
+                                this.openThreadId = null;
+                            }
                         }
 
                         const msg = e.data?.reportlyAgreement;
@@ -283,7 +297,14 @@
                 },
 
                 get openThread_() {
-                    return this.pins.find(p => p.id === this.openThreadId) ?? null;
+                    return this.visiblePins.find(p => p.id === this.openThreadId) ?? null;
+                },
+
+                get visiblePins() {
+                    return this.pins.filter(pin => {
+                        const context = pin.report_context || this.legacyReportContext || 'default';
+                        return context === this.activeReportContext;
+                    });
                 },
 
                 setTool(tool) {
@@ -353,7 +374,13 @@
                     const name = this.resolveAuthorName();
                     if (!this.isTeamMember && !name) return;
 
-                    const ok = await this.postComment({ body, position_x: this.draft.x, position_y: this.draft.y, guest_name: name });
+                    const ok = await this.postComment({
+                        body,
+                        position_x: this.draft.x,
+                        position_y: this.draft.y,
+                        report_context: this.activeReportContext,
+                        guest_name: name,
+                    });
                     if (ok) {
                         this.draft = null;
                         this.draftBody = '';

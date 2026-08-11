@@ -104,10 +104,63 @@ class Project extends Model
                         var height = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
                         parent.postMessage({ reportToolHeight: height }, '*');
                     }
+
+                    function elementKey(element, index) {
+                        return element.id
+                            || element.getAttribute('data-tab')
+                            || element.getAttribute('data-target')
+                            || element.getAttribute('aria-controls')
+                            || element.getAttribute('href')
+                            || String(index);
+                    }
+
+                    function isVisible(element) {
+                        var style = window.getComputedStyle(element);
+                        return !element.hidden && style.display !== 'none' && style.visibility !== 'hidden';
+                    }
+
+                    function reportContext() {
+                        var parts = [];
+                        var activeTabs = document.querySelectorAll(
+                            '[role="tab"][aria-selected="true"], [role="tab"].active, .tab.active, .tabs button.active, .tab-button.active, .nav-tab.active, [data-tab].active'
+                        );
+                        activeTabs.forEach(function (element, index) {
+                            parts.push('tab:' + elementKey(element, index));
+                        });
+
+                        var panels = document.querySelectorAll(
+                            '[role="tabpanel"], section[id], .tab-content, .tab-pane, .tab-panel, .tab-section, .content-section, [data-tab-content]'
+                        );
+                        panels.forEach(function (element, index) {
+                            if (isVisible(element)) parts.push('panel:' + elementKey(element, index));
+                        });
+
+                        if (window.location.hash) parts.push('hash:' + window.location.hash);
+
+                        var context = parts.length ? parts.join('|').slice(0, 500) : 'default';
+                        parent.postMessage({ reportlyContext: context }, '*');
+                    }
+
+                    var contextTimer;
+                    function queueContextReport() {
+                        clearTimeout(contextTimer);
+                        contextTimer = setTimeout(reportContext, 0);
+                    }
+
                     window.addEventListener('load', reportHeight);
                     window.addEventListener('resize', reportHeight);
+                    window.addEventListener('hashchange', queueContextReport);
+                    document.addEventListener('click', queueContextReport);
+                    document.addEventListener('change', queueContextReport);
                     new ResizeObserver(reportHeight).observe(document.documentElement);
+                    new MutationObserver(queueContextReport).observe(document.documentElement, {
+                        subtree: true,
+                        childList: true,
+                        attributes: true,
+                        attributeFilter: ['class', 'style', 'hidden', 'aria-selected'],
+                    });
                     setTimeout(reportHeight, 300);
+                    setTimeout(reportContext, 0);
                 })();
 
                 // Bridge for report content (running in a sandboxed, origin-less iframe)

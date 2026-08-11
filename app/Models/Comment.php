@@ -22,6 +22,7 @@ class Comment extends Model
         'body',
         'position_x',
         'position_y',
+        'report_context',
         'is_resolved',
     ];
 

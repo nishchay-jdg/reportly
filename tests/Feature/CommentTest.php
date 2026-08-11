@@ -33,10 +33,20 @@ class CommentTest extends TestCase
             'guest_name' => 'Jane Client',
             'position_x' => 10,
             'position_y' => 20,
+            'report_context' => 'tab:overview|panel:overview-panel',
         ]);
 
         $response->assertRedirect();
-        $this->assertDatabaseHas('comments', ['share_id' => $share->id, 'body' => 'Looks great', 'author_type' => 'guest']);
+        $this->assertDatabaseHas('comments', [
+            'share_id' => $share->id,
+            'body' => 'Looks great',
+            'author_type' => 'guest',
+            'report_context' => 'tab:overview|panel:overview-panel',
+        ]);
+
+        $this->getJson("/r/{$share->slug}/comments")
+            ->assertOk()
+            ->assertJsonPath('0.report_context', 'tab:overview|panel:overview-panel');
     }
 
     public function test_guest_comment_is_blocked_when_share_disallows_it(): void

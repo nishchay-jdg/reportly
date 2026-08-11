@@ -31,6 +31,7 @@ class CommentController extends Controller
             'body' => ['required', 'string', 'max:2000'],
             'position_x' => ['nullable', 'numeric', 'between:0,100'],
             'position_y' => ['nullable', 'numeric', 'between:0,100'],
+            'report_context' => ['nullable', 'string', 'max:500'],
             // A reply's parent may have been deleted by another viewer a moment ago —
             // validate it still exists and isn't itself a reply (no nesting past 1 level).
             'parent_id' => ['nullable', 'exists:comments,id'],
@@ -59,6 +60,7 @@ class CommentController extends Controller
             'body' => $data['body'],
             'position_x' => $data['position_x'] ?? null,
             'position_y' => $data['position_y'] ?? null,
+            'report_context' => $data['report_context'] ?? null,
         ]);
 
         // A reply on an already-resolved thread means the conversation isn't actually

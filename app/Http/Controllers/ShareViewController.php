@@ -149,6 +149,7 @@ class ShareViewController extends Controller
             'id' => $c->id,
             'position_x' => $c->position_x,
             'position_y' => $c->position_y,
+            'report_context' => $c->report_context,
             'author' => $c->authorName(),
             'body' => $c->body,
             'created_at' => $c->created_at->diffForHumans(),
