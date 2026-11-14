@@ -119,6 +119,17 @@ class ShareTest extends TestCase
         );
     }
 
+    public function test_share_preview_keeps_fragment_links_inside_the_report(): void
+    {
+        [, $project] = $this->projectOwner();
+
+        $preview = $project->renderPreviewHtml(reportHeight: true);
+
+        $this->assertStringContainsString("a[href^=\"#\"]", $preview);
+        $this->assertStringContainsString('event.preventDefault()', $preview);
+        $this->assertStringContainsString('target.scrollIntoView', $preview);
+    }
+
     public function test_destroy_removes_the_share(): void
     {
         [$user, $project] = $this->projectOwner();

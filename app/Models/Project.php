@@ -147,6 +147,30 @@ class Project extends Model
                         contextTimer = setTimeout(reportContext, 0);
                     }
 
+                    // A srcdoc document inherits the share page URL as its base URL. Without
+                    // this guard, a link such as href="#stores" replaces the iframe with the
+                    // entire share page, nesting Reportly inside itself instead of scrolling.
+                    document.addEventListener('click', function (event) {
+                        var anchor = event.target.closest && event.target.closest('a[href^="#"]');
+                        if (!anchor) return;
+
+                        var fragment = anchor.getAttribute('href');
+                        if (!fragment || fragment === '#') return;
+
+                        var target;
+                        try {
+                            target = document.getElementById(decodeURIComponent(fragment.slice(1)));
+                        } catch (error) {
+                            return;
+                        }
+
+                        if (!target) return;
+
+                        event.preventDefault();
+                        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        queueContextReport();
+                    }, true);
+
                     window.addEventListener('load', reportHeight);
                     window.addEventListener('resize', reportHeight);
                     window.addEventListener('hashchange', queueContextReport);
